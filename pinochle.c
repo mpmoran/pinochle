@@ -2,20 +2,27 @@
 
 #define PROJECT_NAME "pinochle"
 
-enum suits {
+const int PACK_CARD_COUNT = 48;
+
+enum suit {
     clubs,
     diamonds,
     hearts,
     spades
 };
 
-enum ranks {
+enum rank {
     ace,
     ten,
     king,
     queen,
     jack,
     nine
+};
+
+struct card {
+    enum suit suit;
+    enum rank rank;
 };
 
 int main(int argc, char **argv) {
