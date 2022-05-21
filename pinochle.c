@@ -15,6 +15,7 @@
 
 const int PACK_CARD_COUNT = 48;
 
+/* TODO think about this -> should i use enums for ranks and suits? */
 enum rank {
     ace,
     ten,
@@ -67,6 +68,17 @@ int card_is_counter(struct card *card)
     return 0;
 }
 
+int card_is_noncounter(struct card *card)
+{
+    enum rank rank = card->rank;
+    for (unsigned long i = 0; i < sizeof(NONCOUNTERS); i++) {
+        if (rank == NONCOUNTERS[i]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int main(int argc, char **argv) {
     printf("Hello.\n");
     if(argc != 1) {
@@ -88,6 +100,21 @@ int main(int argc, char **argv) {
     printf("Destroying the first card.\n");
     free(first_card);
 
+    printf("===\n");
+
+    struct card *second_card = malloc(sizeof(struct card));
+    printf("I think we got another card.\n");
+    card_init(second_card, queen, clubs);
+    printf("The second card has rank %d and suit %d.\n", second_card->rank, second_card->suit);
+    printf("Is the second card a \"noncounter\" card?\n");
+    if (card_is_noncounter(second_card) == 1) {
+        printf("Yes.\n");
+    } else {
+        printf("No.\n");
+    }
+    printf("Destroying the second card.\n");
+    free(second_card);
     printf("Goodbye.\n");
+
     return 0;
 }
