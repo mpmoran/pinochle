@@ -25,6 +25,12 @@ struct card {
     enum rank rank;
 };
 
+void card_init(struct card *card, enum suit suit, enum rank rank)
+{
+    card->suit = suit;
+    card->rank = rank;
+}
+
 int main(int argc, char **argv) {
     if(argc != 1) {
         printf("%s takes no arguments.\n", argv[0]);
