@@ -85,6 +85,24 @@ int card_is_noncounter(struct card *card)
     return 0;
 }
 
+struct player {
+    int id;
+    char *name;
+    int is_dealer;
+};
+
+void player_init(struct player *player, char *name, int is_dealer)
+{
+    player->id = rand();  /* random number */
+    player->name = name;  /* TODO think about this -> is this bad practice? */
+    player->is_dealer = is_dealer;
+}
+
+int player_is_dealer(struct player *player)
+{
+    return player->is_dealer;
+}
+
 int main(int argc, char **argv) {
     printf("Hello.\n");
     if(argc != 1) {
@@ -121,6 +139,25 @@ int main(int argc, char **argv) {
     printf("Destroying the second card.\n");
     free(second_card);
     printf("Goodbye.\n");
+
+    printf("===\n");
+
+    /* create a player who is a dealer */
+    srand(1);  /* TODO do something about this. */
+    char *player1_name = "yo-yo mendez";
+    int player1_is_dealer = 1;
+    printf("Creating the first player.\n");
+    struct player *player1 = malloc(sizeof(struct player));
+    player_init(player1, player1_name, player1_is_dealer);
+    printf("The first player's id is %d and name is %s.\n", player1->id, player1->name);
+    printf("Is the first player a dealer?\n");
+    if (player_is_dealer(player1) == 1) {
+        printf("Yes.\n");
+    } else {
+        printf("No.\n");
+    }
+    printf("Ummm . . . retiring the first player.\n");
+    free(player1);
 
     return 0;
 }
