@@ -159,5 +159,23 @@ int main(int argc, char **argv) {
     printf("Ummm . . . retiring the first player.\n");
     free(player1);
 
+    printf("===\n");
+
+    /* create a player who is not a dealer */
+    char *player2_name = "silvio dante";
+    int player2_is_dealer = 0;
+    printf("Creating the second player.\n");
+    struct player *player2 = malloc(sizeof(struct player));
+    player_init(player2, player2_name, player2_is_dealer);
+    printf("The second player's id is %d and name is %s.\n", player2->id, player2->name);
+    printf("Is the second player a dealer?\n");
+    if (player_is_dealer(player2) == 1) {
+        printf("Yes.\n");
+    } else {
+        printf("No.\n");
+    }
+    printf("Ummm . . . retiring the second player.\n");
+    free(player2);
+
     return 0;
 }
