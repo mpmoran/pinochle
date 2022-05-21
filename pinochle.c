@@ -1,3 +1,6 @@
+/*
+ * notes and code for learning pinochle
+ */ 
 #include <stdio.h>
 
 #define PROJECT_NAME "pinochle"
@@ -18,6 +21,11 @@ enum rank {
     queen,
     jack,
     nine
+};
+const enum rank COUNTERS[] = {
+    ace,
+    ten,
+    king
 };
 
 struct card {
