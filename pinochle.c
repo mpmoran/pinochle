@@ -138,7 +138,6 @@ int main(int argc, char **argv) {
     }
     printf("Destroying the second card.\n");
     free(second_card);
-    printf("Goodbye.\n");
 
     printf("===\n");
 
@@ -177,5 +176,6 @@ int main(int argc, char **argv) {
     printf("Ummm . . . retiring the second player.\n");
     free(player2);
 
+    printf("Goodbye.\n");
     return 0;
 }
