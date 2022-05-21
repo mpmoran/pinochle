@@ -14,6 +14,10 @@
 #define PROJECT_NAME "pinochle"
 
 const int PACK_CARD_COUNT = 48;
+const int NUM_CARDS_PER_PLAYER = 12;
+const int NUM_CARDS_DEALT_AT_ONCE = 3;
+/* sometimes it's 4. */
+// const int NUM_CARDS_DEALT_AT_ONCE = 4;
 
 /* TODO think about this -> should i use enums for ranks and suits? */
 enum rank {
@@ -31,7 +35,9 @@ const enum rank COUNTERS[] = {
     king
 };
 /* sometimes there's such a thing as "noncounter" cards.
- * these are worthless (i.e., no points).
+ * these are worthless (i.e., no points). the scoring system
+ * should be agreed on before play begins (i.e., the first
+ * card is dealt).
  */
 const enum rank NONCOUNTERS[] = {
     queen,
