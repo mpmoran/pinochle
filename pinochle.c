@@ -158,6 +158,13 @@ deck_new()
 }
 
 void
+deck_free(struct deck *deck)
+{
+    g_list_free_full(deck->cards, free);
+    free(deck);
+}
+
+void
 deck_show(struct deck* deck)
 {
     g_list_foreach(deck->cards, (GFunc)card_show, NULL);
@@ -287,7 +294,7 @@ main(int argc, char** argv)
     printf("Making a deck.\n");
     struct deck* first_deck = deck_new();
     deck_show(first_deck);
-    // TODO deck_free(first_deck);
+    deck_free(first_deck);
 
     printf("Goodbye.\n");
     return 0;
