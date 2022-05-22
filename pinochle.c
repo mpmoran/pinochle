@@ -14,13 +14,13 @@
 
 #define PROJECT_NAME "pinochle"
 
-const int PACK_CARD_COUNT = 48;
 const int NUM_CARDS_PER_PLAYER = 12;
 const int NUM_CARDS_DEALT_AT_ONCE = 3;
 /* sometimes it's 4. */
 // const int NUM_CARDS_DEALT_AT_ONCE = 4;
 
 /* TODO think about this -> should i use enums for ranks and suits? */
+const int NRANK = 6;
 enum rank
 {
     ace,
@@ -30,6 +30,7 @@ enum rank
     jack,
     nine
 };
+const enum rank RANKS[] = { ace, ten, king, queen, jack, nine };
 /* "counter" cards are ALWAYS worth points. */
 const enum rank COUNTERS[] = { ace, ten, king };
 /* sometimes there's such a thing as "noncounter" cards.
@@ -39,6 +40,7 @@ const enum rank COUNTERS[] = { ace, ten, king };
  */
 const enum rank NONCOUNTERS[] = { queen, jack, nine };
 
+const int NSUIT = 4;
 enum suit
 {
     clubs,
@@ -46,6 +48,7 @@ enum suit
     hearts,
     spades
 };
+const enum suit SUITS[] = { clubs, diamonds, hearts, spades };
 
 struct card
 {
@@ -84,40 +87,80 @@ card_is_noncounter(struct card* card)
     return 0;
 }
 
-char*
-card_human(struct card* card, char* buf)
+GString*
+card_human(struct card* card)
 {
+    GString* buf = g_string_new("");
     enum rank rank = card->rank;
-    char* rank_human = "";
     if (rank == ace) {
-        rank_human = "ace";
+        g_string_append(buf, "ace");
     } else if (rank == ten) {
-        rank_human = "ten";
+        g_string_append(buf, "ten");
     } else if (rank == king) {
-        rank_human = "king";
+        g_string_append(buf, "king");
     } else if (rank == queen) {
-        rank_human = "queen";
+        g_string_append(buf, "queen");
     } else if (rank == jack) {
-        rank_human = "jack";
+        g_string_append(buf, "jack");
     } else if (rank == nine) {
-        rank_human = "nine";
+        g_string_append(buf, "nine");
     }
+
+    g_string_append(buf, " of ");
 
     enum suit suit = card->suit;
-    char* suit_human = "";
     if (suit == clubs) {
-        suit_human = "clubs";
+        g_string_append(buf, "clubs");
     } else if (suit == diamonds) {
-        suit_human = "diamonds";
+        g_string_append(buf, "diamonds");
     } else if (suit == hearts) {
-        suit_human = "hearts";
+        g_string_append(buf, "hearts");
     } else if (suit == spades) {
-        suit_human = "spades";
+        g_string_append(buf, "spades");
     }
 
-    sprintf(buf, "%s of %s", rank_human, suit_human);
-
     return buf;
+}
+
+void
+card_show(struct card* card)
+{
+    GString* buf = card_human(card);
+    printf("%s\n", buf->str);
+    g_string_free(buf, FALSE);
+}
+
+const int PACK_CARD_COUNT = 48;
+struct deck
+{
+    GList* cards;
+    int ncards;
+};
+
+struct deck*
+deck_new()
+{
+    struct deck* d = malloc(sizeof(struct deck));
+    d->ncards = PACK_CARD_COUNT;
+    d->cards = NULL;
+
+    /* for each rank, make a card of each suit */
+    for (unsigned long i = 0; i < NRANK; i++) {
+        for (unsigned long j = 0; j < NSUIT; j++) {
+            struct card* cur = malloc(sizeof(struct card));
+            cur->rank = RANKS[i];
+            cur->suit = SUITS[j];
+            d->cards = g_list_append(d->cards, cur);
+        }
+    }
+
+    return d;
+}
+
+void
+deck_show(struct deck* deck)
+{
+    g_list_foreach(deck->cards, (GFunc)card_show, NULL);
 }
 
 struct player
@@ -201,11 +244,10 @@ main(int argc, char** argv)
         printf("No.\n");
     }
     player1->hand = g_list_append(player1->hand, first_card);
-    char* tmpbuf1 = calloc(32, sizeof(char));
-    printf("The first player's first card is %s.\n",
-           card_human(player1->hand->data, tmpbuf1));
+    GString* player1_card_str = card_human(player1->hand->data);
+    printf("The first player's first card is %s.\n", player1_card_str->str);
     printf("Ummm . . . retiring the first player.\n");
-    free(tmpbuf1);
+    g_string_free(player1_card_str, FALSE);
     g_list_free(player1->hand);
     free(player1);
 
@@ -228,11 +270,10 @@ main(int argc, char** argv)
         printf("No.\n");
     }
     player2->hand = g_list_append(player2->hand, second_card);
-    char* tmpbuf2 = calloc(32, sizeof(char));
-    printf("The second player's first card is %s.\n",
-           card_human(player2->hand->data, tmpbuf2));
+    GString* player2_card_str = card_human(player2->hand->data);
+    printf("The second player's first card is %s.\n", player2_card_str->str);
     printf("Ummm . . . retiring the second player.\n");
-    free(tmpbuf2);
+    g_string_free(player2_card_str, FALSE);
     g_list_free(player2->hand);
     free(player2);
 
@@ -240,6 +281,13 @@ main(int argc, char** argv)
     free(first_card);
     printf("Destroying the second card.\n");
     free(second_card);
+
+    printf("===\n");
+
+    printf("Making a deck.\n");
+    struct deck* first_deck = deck_new();
+    deck_show(first_deck);
+    // TODO deck_free(first_deck);
 
     printf("Goodbye.\n");
     return 0;
