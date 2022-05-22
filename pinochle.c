@@ -8,6 +8,7 @@
  * https://gamerules.com/rules/pinochle-card-game/
  */
 
+#include <assert.h>
 #include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,12 +36,14 @@ enum rank
 };
 const enum rank RANKS[] = { ace, ten, king, queen, jack, nine };
 /* "counter" cards are ALWAYS worth points. */
+const int NCOUNTERS = 3;
 const enum rank COUNTERS[] = { ace, ten, king };
 /* sometimes there's such a thing as "noncounter" cards.
  * these are worthless (i.e., no points). the scoring system
  * should be agreed on before play begins (i.e., the first
  * card is dealt).
  */
+const int NNONCOUNTERS = 3;
 const enum rank NONCOUNTERS[] = { queen, jack, nine };
 
 const int NSUIT = 4;
@@ -59,18 +62,27 @@ struct card
     enum rank rank;
 };
 
-void
-card_init(struct card* card, enum rank rank, enum suit suit)
+struct card*
+card_new(enum rank rank, enum suit suit)
 {
-    card->suit = suit;
-    card->rank = rank;
+    struct card* c = g_slice_new(struct card);
+    c->suit = suit;
+    c->rank = rank;
+
+    return c;
+}
+
+void
+card_free(struct card* c)
+{
+    g_slice_free(struct card, c);
 }
 
 int
 card_is_counter(struct card* card)
 {
     enum rank rank = card->rank;
-    for (unsigned long i = 0; i < sizeof(COUNTERS); i++) {
+    for (unsigned long i = 0; i < NCOUNTERS; i++) {
         if (rank == COUNTERS[i]) {
             return 1;
         }
@@ -82,7 +94,7 @@ int
 card_is_noncounter(struct card* card)
 {
     enum rank rank = card->rank;
-    for (unsigned long i = 0; i < sizeof(NONCOUNTERS); i++) {
+    for (unsigned long i = 0; i < NNONCOUNTERS; i++) {
         if (rank == NONCOUNTERS[i]) {
             return 1;
         }
@@ -91,7 +103,7 @@ card_is_noncounter(struct card* card)
 }
 
 GString*
-card_human(struct card* card)
+card_str(struct card* card)
 {
     GString* buf = g_string_new("");
     enum rank rank = card->rank;
@@ -126,11 +138,58 @@ card_human(struct card* card)
 }
 
 void
-card_show(struct card* card)
+card_show(struct card* card, const gchar *fmtstr)
 {
-    GString* buf = card_human(card);
-    printf("%s\n", buf->str);
+    GString* buf = card_str(card);
+    printf(fmtstr, buf->str);
     g_string_free(buf, FALSE);
+}
+
+void
+card_tests()
+{
+    printf("[+] Running tests for card.\n");
+
+    /* test creation */
+    struct card* c11 = card_new(ace, spades);
+    assert(c11->rank == ace);
+    assert(c11->suit == spades);
+    card_free(c11);
+
+    /* test is_counter() */
+    struct card* c21 = card_new(ace, spades);
+    assert(card_is_counter(c21) == 1);
+    card_free(c21);
+    struct card* c22 = card_new(queen, spades);
+    assert(card_is_counter(c22) == 0);
+    card_free(c22);
+
+    /* test is_noncounter() */
+    struct card* c31 = card_new(queen, spades);
+    assert(card_is_noncounter(c31) == 1);
+    card_free(c31);
+    struct card* c32 = card_new(ace, spades);
+    assert(card_is_noncounter(c32) == 0);
+    card_free(c32);
+
+    /* test str() */
+    struct card* c41 = card_new(ace, spades);
+    GString* c41_str = card_str(c41);
+    assert(g_strcmp0(c41_str->str, "ace of spades") == 0);
+    g_string_free(c41_str, FALSE);
+    card_free(c41);
+    struct card* c42 = card_new(queen, hearts);
+    GString* c42_str = card_str(c42);
+    assert(g_strcmp0(c42_str->str, "queen of hearts") == 0);
+    g_string_free(c42_str, FALSE);
+    card_free(c42);
+
+    /* test show() */
+    struct card *c51 = card_new(ace, spades);
+    card_show(c51, "card is %s.\n");
+    card_free(c51);
+
+    printf("[+] Finished tests for card.\n");
 }
 
 const int PACK_CARD_COUNT = 48;
@@ -179,6 +238,7 @@ deck_draw(struct deck* deck, gint32 pos)
     GList* cards = deck->cards;
     struct card* c = g_list_nth_data(cards, pos);
     deck->cards = g_list_remove(cards, c);
+    deck->ncards = deck->ncards - 1;
 
     return c;
 }
@@ -223,109 +283,12 @@ get_rand_int(gint32 begin, gint32 end)
 int
 main(int argc, char** argv)
 {
-    printf("Hello.\n");
-    if (argc != 1) {
-        printf("%s takes no arguments.\n", argv[0]);
-        return 1;
-    }
-    printf("This is project %s.\n", PROJECT_NAME);
-
-    struct card* first_card = malloc(sizeof(struct card));
-    printf("I think we got a card.\n");
-    card_init(first_card, ace, clubs);
-    printf("The first card has rank %d and suit %d.\n",
-           first_card->rank,
-           first_card->suit);
-    printf("Is the first card a \"counter\" card?\n");
-    if (card_is_counter(first_card) == 1) {
-        printf("Yes.\n");
-    } else {
-        printf("No.\n");
+    printf("Received %d arguments. They are.\n", argc);
+    for (int i = 0; i < argc; i++) {
+        printf("%s\n", argv[i]);
     }
 
-    printf("===\n");
-
-    struct card* second_card = malloc(sizeof(struct card));
-    printf("I think we got another card.\n");
-    card_init(second_card, queen, clubs);
-    printf("The second card has rank %d and suit %d.\n",
-           second_card->rank,
-           second_card->suit);
-    printf("Is the second card a \"noncounter\" card?\n");
-    if (card_is_noncounter(second_card) == 1) {
-        printf("Yes.\n");
-    } else {
-        printf("No.\n");
-    }
-
-    printf("===\n");
-
-    /* create a player who is a dealer */
-    srand(1); /* TODO do something about this. */
-    char* player1_name = "yo-yo mendez";
-    int player1_is_dealer = 1;
-    printf("Creating the first player.\n");
-    struct player* player1 = malloc(sizeof(struct player));
-    GList* player1_hand = NULL;
-    player_init(player1, player1_name, player1_is_dealer, player1_hand);
-    printf("The first player's id is %d and name is %s.\n",
-           player1->id,
-           player1->name);
-    printf("Is the first player a dealer?\n");
-    if (player_is_dealer(player1) == 1) {
-        printf("Yes.\n");
-    } else {
-        printf("No.\n");
-    }
-    player1->hand = g_list_append(player1->hand, first_card);
-    GString* player1_card_str = card_human(player1->hand->data);
-    printf("The first player's first card is %s.\n", player1_card_str->str);
-    printf("Ummm . . . retiring the first player.\n");
-    g_string_free(player1_card_str, FALSE);
-    g_list_free(player1->hand);
-    free(player1);
-
-    printf("===\n");
-
-    /* create a player who is not a dealer */
-    char* player2_name = "silvio dante";
-    int player2_is_dealer = 0;
-    printf("Creating the second player.\n");
-    struct player* player2 = malloc(sizeof(struct player));
-    GList* player2_hand = NULL;
-    player_init(player2, player2_name, player2_is_dealer, player2_hand);
-    printf("The second player's id is %d and name is %s.\n",
-           player2->id,
-           player2->name);
-    printf("Is the second player a dealer?\n");
-    if (player_is_dealer(player2) == 1) {
-        printf("Yes.\n");
-    } else {
-        printf("No.\n");
-    }
-    player2->hand = g_list_append(player2->hand, second_card);
-    GString* player2_card_str = card_human(player2->hand->data);
-    printf("The second player's first card is %s.\n", player2_card_str->str);
-    printf("Ummm . . . retiring the second player.\n");
-    g_string_free(player2_card_str, FALSE);
-    g_list_free(player2->hand);
-    free(player2);
-
-    printf("Destroying the first card.\n");
-    free(first_card);
-    printf("Destroying the second card.\n");
-    free(second_card);
-
-    printf("===\n");
-
-    printf("Making a deck.\n");
-    struct deck* first_deck = deck_new();
-    deck_show(first_deck);
-    printf("Drawing a card.\n");
-    struct card* drawn_card =
-      deck_draw(first_deck, get_rand_int(0, PACK_CARD_COUNT));
-    card_show(drawn_card);
-    deck_free(first_deck);
+    card_tests();
 
     printf("Goodbye.\n");
     return 0;

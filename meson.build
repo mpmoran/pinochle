@@ -4,7 +4,8 @@ project('pinochle', 'c',
 
 glibdep = dependency('glib-2.0')
 exe = executable('pinochle', 'pinochle.c',
-  dependencies : glibdep,
+  dependencies : [glibdep],
+  cpp_args : ['-O1', '-g', '-fno-omit-frame-pointer'],
   install : true)
 
 test('basic', exe)
