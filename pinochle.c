@@ -19,6 +19,9 @@ const int NUM_CARDS_DEALT_AT_ONCE = 3;
 /* sometimes it's 4. */
 // const int NUM_CARDS_DEALT_AT_ONCE = 4;
 
+/* disable bidding; TODO implement bidding system */
+const int WITH_BIDS = 0;
+
 /* TODO think about this -> should i use enums for ranks and suits? */
 const int NRANK = 6;
 enum rank
@@ -158,7 +161,7 @@ deck_new()
 }
 
 void
-deck_free(struct deck *deck)
+deck_free(struct deck* deck)
 {
     g_list_free_full(deck->cards, free);
     free(deck);
@@ -170,6 +173,17 @@ deck_show(struct deck* deck)
     g_list_foreach(deck->cards, (GFunc)card_show, NULL);
 }
 
+struct card*
+deck_draw(struct deck* deck, gint32 pos)
+{
+    GList* cards = deck->cards;
+    struct card* c = g_list_nth_data(cards, pos);
+    deck->cards = g_list_remove(cards, c);
+
+    return c;
+}
+
+const int NPLAYERS = 2; /* 4 players can play in 2 teams of 2. is this right? */
 struct player
 {
     int id;
@@ -191,6 +205,19 @@ int
 player_is_dealer(struct player* player)
 {
     return player->is_dealer;
+}
+
+GRand* grand = NULL;
+int
+get_rand_int(gint32 begin, gint32 end)
+{
+    if (grand == NULL) {
+        grand = g_rand_new_with_seed(1);
+    }
+
+    gint32 num = g_rand_int_range(grand, begin, end);
+
+    return num;
 }
 
 int
@@ -294,6 +321,10 @@ main(int argc, char** argv)
     printf("Making a deck.\n");
     struct deck* first_deck = deck_new();
     deck_show(first_deck);
+    printf("Drawing a card.\n");
+    struct card* drawn_card =
+      deck_draw(first_deck, get_rand_int(0, PACK_CARD_COUNT));
+    card_show(drawn_card);
     deck_free(first_deck);
 
     printf("Goodbye.\n");
