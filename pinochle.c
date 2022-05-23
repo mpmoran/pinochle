@@ -15,6 +15,21 @@
 
 #define PROJECT_NAME "pinochle"
 
+/* helpers */
+GRand* grand = NULL;
+guint32
+get_rand_int(guint32 begin, guint32 end)
+{
+    if (grand == NULL) {
+        grand = g_rand_new_with_seed(1);
+    }
+
+    guint32 num = g_rand_int_range(grand, begin, end);
+
+    return num;
+}
+/* *** */
+
 const guint32 NUM_CARDS_PER_PLAYER = 12;
 const guint32 NUM_CARDS_DEALT_AT_ONCE = 3;
 /* sometimes it's 4. */
@@ -82,6 +97,25 @@ void
 card_free_gfunc(gpointer data, gpointer user_data)
 {
     card_free((struct card*)data);
+}
+
+guint32
+card_is_valid(struct card* c)
+{
+    enum rank rank = c->rank;
+    if (rank == ace || rank == ten || rank == king || rank == queen ||
+        rank == jack || rank == nine) {
+        enum suit suit = c->suit;
+        if (suit == clubs || suit == diamonds || suit == hearts ||
+            suit == spades) {
+            return 1;
+        } else {
+            return 0;
+        }
+
+    } else {
+        return 0;
+    }
 }
 
 int
@@ -167,6 +201,19 @@ card_tests()
     assert(c11->rank == ace);
     assert(c11->suit == spades);
     card_free(c11);
+
+    /* test is_valid() */
+    struct card* c61 = card_new(ace, spades);
+    assert(card_is_valid(c61) == 1);
+    card_free(c61);
+    struct card* c62 = card_new(ace, spades);
+    c62->rank = 99;
+    assert(card_is_valid(c62) == 0);
+    card_free(c62);
+    struct card* c63 = card_new(ace, spades);
+    c63->suit = 99;
+    assert(card_is_valid(c63) == 0);
+    card_free(c62);
 
     /* test is_counter() */
     struct card* c21 = card_new(ace, spades);
@@ -260,6 +307,15 @@ deck_draw(struct deck* d, guint32 pos)
     return c;
 }
 
+struct card*
+deck_draw_rand(struct deck* d)
+{
+    guint32 pos = get_rand_int(0, deck_count(d));
+    struct card* c = deck_draw(d, pos);
+
+    return c;
+}
+
 void
 deck_hash_table_free_value(void* num)
 {
@@ -321,11 +377,18 @@ deck_tests()
     struct deck* d31 = deck_new();
     struct card* c31 = deck_draw(d31, 0);
     assert(c31->rank == ace && c31->suit == clubs);
-    assert(d31->ncards == PACK_CARD_COUNT - 1);
+    assert(deck_count(d31) == PACK_CARD_COUNT - 1);
     struct card* c32 = deck_draw(d31, 46);
     assert(c32->rank == nine && c32->suit == spades);
-    assert(d31->ncards == PACK_CARD_COUNT - 2);
+    assert(deck_count(d31) == PACK_CARD_COUNT - 2);
     deck_free(d31);
+
+    /* test draw_rand() */
+    struct deck* d61 = deck_new();
+    struct card* c61 = deck_draw_rand(d61);
+    assert(card_is_valid(c61) == 1);
+    assert(deck_count(d61) == PACK_CARD_COUNT - 1);
+    deck_free(d61);
 
     /* test hashmap() */
     struct deck* d51 = deck_new();
@@ -333,6 +396,11 @@ deck_tests()
     assert(g_hash_table_size(ht51) == deck_count(d51));
     deck_hash_table_free(ht51);
     deck_free(d51);
+
+    /* test show() */
+    struct deck* d71 = deck_new();
+    deck_show(d71);
+    deck_free(d71);
 
     printf("[+] Finished tests for deck.\n");
 }
@@ -342,7 +410,7 @@ const guint32 NPLAYERS =
 struct player
 {
     guint32 id;
-    char* name;
+    GString* name;
     guint32 is_dealer;
     GList* hand;
 };
@@ -362,18 +430,12 @@ player_is_dealer(struct player* player)
     return player->is_dealer;
 }
 
-GRand* grand = NULL;
-int
-get_rand_int(guint32 begin, guint32 end)
+void player_tests()
 {
-    if (grand == NULL) {
-        grand = g_rand_new_with_seed(1);
-    }
-
-    guint32 num = g_rand_int_range(grand, begin, end);
-
-    return num;
+    printf("[+] Running tests for player.\n");
+    printf("[+] Finished tests for player.\n");
 }
+
 
 int
 main(int argc, char** argv)
@@ -384,6 +446,8 @@ main(int argc, char** argv)
     }
 
     card_tests();
+    deck_tests();
+    player_tests();
 
     printf("Goodbye.\n");
     return 0;
