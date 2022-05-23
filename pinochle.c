@@ -144,6 +144,12 @@ card_str(struct card* card)
 }
 
 void
+card_str_free(void* str)
+{
+    g_string_free(str, FALSE);
+}
+
+void
 card_show(struct card* card, const gchar* fmtstr)
 {
     GString* buf = card_str(card);
@@ -231,7 +237,8 @@ deck_free(struct deck* d)
     g_slice_free(struct deck, d);
 }
 
-guint32 deck_count(struct deck* d)
+guint32
+deck_count(struct deck* d)
 {
     return d->ncards;
 }
@@ -253,14 +260,32 @@ deck_draw(struct deck* d, guint32 pos)
     return c;
 }
 
-// GHashTable* deck_hash_table(struct deck *d)
-// {
-//     GHashTable* ht = g_hash_table_new(g_str_hash, g_str_equal);
-//     for (guint32 i = 0; i < d->ncards; i++) {
-//         struct card *c = deck_get(d, i);
-//         g_hash_table_insert(ht, card_human(d->), d->cards[i])
-//     }
-// }
+void
+deck_hash_table_free_value(void* num)
+{
+    g_slice_free(guint32, num);
+}
+
+GHashTable*
+deck_hash_table_new(struct deck* d)
+{
+    GHashTable* ht = g_hash_table_new_full(
+      g_str_hash, g_str_equal, card_str_free, deck_hash_table_free_value);
+    for (guint32 i = 0; i < deck_count(d); i++) {
+        struct card* c = deck_get(d, i);
+        guint32* cnt = g_slice_new(guint32);
+        *cnt = 1;
+        g_hash_table_insert(ht, card_str(c), cnt);
+    }
+
+    return ht;
+}
+
+void
+deck_hash_table_free(GHashTable* ht)
+{
+    g_hash_table_destroy(ht);
+}
 
 void
 deck_show(struct deck* deck)
@@ -284,7 +309,6 @@ deck_tests()
     assert(deck_count(d41) == PACK_CARD_COUNT);
     deck_free(d41);
 
-
     /* test get() */
     struct deck* d21 = deck_new();
     struct card* c21 = deck_get(d21, 0);
@@ -294,21 +318,21 @@ deck_tests()
     deck_free(d21);
 
     /* test draw() */
-    struct deck *d31 = deck_new();
-    struct card *c31 = deck_draw(d31, 0);
+    struct deck* d31 = deck_new();
+    struct card* c31 = deck_draw(d31, 0);
     assert(c31->rank == ace && c31->suit == clubs);
     assert(d31->ncards == PACK_CARD_COUNT - 1);
-    struct card *c32 = deck_draw(d31, 46);
+    struct card* c32 = deck_draw(d31, 46);
     assert(c32->rank == nine && c32->suit == spades);
     assert(d31->ncards == PACK_CARD_COUNT - 2);
     deck_free(d31);
 
     /* test hashmap() */
-    // struct deck* d21 = deck_new();
-    // GHashTable* t21 = deck_hash_table(d21);
-    // assert(g_hash_table_size(t21) == d->ncards);
-    // g_hash_table_destroy(t21);
-    // deck_free(d21);
+    struct deck* d51 = deck_new();
+    GHashTable* ht51 = deck_hash_table_new(d51);
+    assert(g_hash_table_size(ht51) == deck_count(d51));
+    deck_hash_table_free(ht51);
+    deck_free(d51);
 
     printf("[+] Finished tests for deck.\n");
 }
