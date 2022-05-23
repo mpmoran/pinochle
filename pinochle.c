@@ -209,9 +209,7 @@ struct deck*
 deck_new()
 {
     struct deck* d = g_slice_new(struct deck);
-    d->ncards = PACK_CARD_COUNT;
     d->cards = NULL;
-
     /* for each rank, make a card of each suit */
     for (unsigned long i = 0; i < NRANK; i++) {
         for (unsigned long j = 0; j < NSUIT; j++) {
@@ -221,6 +219,7 @@ deck_new()
             d->cards = g_list_append(d->cards, cur);
         }
     }
+    d->ncards = g_list_length(d->cards);
 
     return d;
 }
@@ -230,6 +229,11 @@ deck_free(struct deck* d)
 {
     g_list_foreach(d->cards, card_free_gfunc, NULL);
     g_slice_free(struct deck, d);
+}
+
+guint32 deck_count(struct deck* d)
+{
+    return d->ncards;
 }
 
 struct card*
@@ -244,7 +248,7 @@ deck_draw(struct deck* d, guint32 pos)
 {
     struct card* c = deck_get(d, pos);
     d->cards = g_list_remove(d->cards, c);
-    d->ncards = d->ncards - 1;
+    d->ncards = g_list_length(d->cards);
 
     return c;
 }
@@ -275,6 +279,12 @@ deck_tests()
     assert(g_list_length(d11->cards) == PACK_CARD_COUNT);
     deck_free(d11);
 
+    /* test count() */
+    struct deck* d41 = deck_new();
+    assert(deck_count(d41) == PACK_CARD_COUNT);
+    deck_free(d41);
+
+
     /* test get() */
     struct deck* d21 = deck_new();
     struct card* c21 = deck_get(d21, 0);
@@ -282,6 +292,16 @@ deck_tests()
     struct card* c22 = deck_get(d21, PACK_CARD_COUNT - 1);
     assert(c22->rank == nine && c22->suit == spades);
     deck_free(d21);
+
+    /* test draw() */
+    struct deck *d31 = deck_new();
+    struct card *c31 = deck_draw(d31, 0);
+    assert(c31->rank == ace && c31->suit == clubs);
+    assert(d31->ncards == PACK_CARD_COUNT - 1);
+    struct card *c32 = deck_draw(d31, 46);
+    assert(c32->rank == nine && c32->suit == spades);
+    assert(d31->ncards == PACK_CARD_COUNT - 2);
+    deck_free(d31);
 
     /* test hashmap() */
     // struct deck* d21 = deck_new();
