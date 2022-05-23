@@ -18,13 +18,26 @@
 /* helpers */
 GRand* grand = NULL;
 guint32
-get_rand_int(guint32 begin, guint32 end)
+get_rand_int()
 {
     if (grand == NULL) {
         grand = g_rand_new_with_seed(1);
     }
 
-    guint32 num = g_rand_int_range(grand, begin, end);
+    guint32 num = g_rand_int(grand);
+
+    return num;
+}
+
+GRand* grand_range = NULL;
+guint32
+get_rand_int_range(guint32 begin, guint32 end)
+{
+    if (grand_range == NULL) {
+        grand_range = g_rand_new_with_seed(1);
+    }
+
+    guint32 num = g_rand_int_range(grand_range, begin, end);
 
     return num;
 }
@@ -251,6 +264,26 @@ card_tests()
     printf("[+] Finished tests for card.\n");
 }
 
+// TODO make this and tests
+struct hand
+{
+    gchar* placeholder;
+};
+
+struct hand*
+hand_new()
+{
+    struct hand* h = g_slice_new(struct hand);
+
+    return h;
+}
+
+void
+hand_free(struct hand* h)
+{
+    g_slice_free(struct hand, h);
+}
+
 const guint32 PACK_CARD_COUNT = 48;
 struct deck
 {
@@ -266,9 +299,7 @@ deck_new()
     /* for each rank, make a card of each suit */
     for (unsigned long i = 0; i < NRANK; i++) {
         for (unsigned long j = 0; j < NSUIT; j++) {
-            struct card* cur = g_slice_new(struct card);
-            cur->rank = RANKS[i];
-            cur->suit = SUITS[j];
+            struct card* cur = card_new(RANKS[i], SUITS[j]);
             d->cards = g_list_append(d->cards, cur);
         }
     }
@@ -310,7 +341,7 @@ deck_draw(struct deck* d, guint32 pos)
 struct card*
 deck_draw_rand(struct deck* d)
 {
-    guint32 pos = get_rand_int(0, deck_count(d));
+    guint32 pos = get_rand_int_range(0, deck_count(d));
     struct card* c = deck_draw(d, pos);
 
     return c;
@@ -412,30 +443,62 @@ struct player
     guint32 id;
     GString* name;
     guint32 is_dealer;
-    GList* hand;
+    struct hand* hand;
 };
 
-void
-player_init(struct player* player, char* name, guint32 is_dealer, GList* hand)
+guint32 player_next_id = 0;
+guint32
+player_get_next_id()
 {
-    player->id = rand(); /* random number */
-    player->name = name; /* TODO think about this -> is this bad practice? */
-    player->is_dealer = is_dealer;
-    player->hand = hand;
+    guint32 next_id = player_next_id;
+    player_next_id = player_next_id + 1;
+
+    return next_id;
+}
+
+struct player*
+player_new(const gchar* name, guint32 is_dealer)
+{
+    struct player* p = g_slice_new(struct player);
+    p->id = player_get_next_id();
+    p->name = g_string_new(name);
+    p->is_dealer = is_dealer;
+    p->hand = hand_new();
+
+    return p;
+}
+
+void
+player_free(struct player* p)
+{
+    g_string_free(p->name, FALSE);
+    hand_free(p->hand);
+    g_slice_free(struct player, p);
 }
 
 int
-player_is_dealer(struct player* player)
+player_is_dealer(struct player* p)
 {
-    return player->is_dealer;
+    return p->is_dealer;
 }
 
-void player_tests()
+void
+player_tests()
 {
     printf("[+] Running tests for player.\n");
+
+    /* test get_next_id() */
+    guint32 id11 = player_get_next_id();
+    assert(id11 == 0);
+    guint32 id12 = player_get_next_id();
+    assert(id12 == 1);
+
+    /* test new() */
+
+    /* test is_dealer() */
+
     printf("[+] Finished tests for player.\n");
 }
-
 
 int
 main(int argc, char** argv)
