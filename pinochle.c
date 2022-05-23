@@ -15,16 +15,16 @@
 
 #define PROJECT_NAME "pinochle"
 
-const int NUM_CARDS_PER_PLAYER = 12;
-const int NUM_CARDS_DEALT_AT_ONCE = 3;
+const guint32 NUM_CARDS_PER_PLAYER = 12;
+const guint32 NUM_CARDS_DEALT_AT_ONCE = 3;
 /* sometimes it's 4. */
-// const int NUM_CARDS_DEALT_AT_ONCE = 4;
+// const guint32 NUM_CARDS_DEALT_AT_ONCE = 4;
 
 /* disable bidding; TODO implement bidding system */
-const int WITH_BIDS = 0;
+const guint32 WITH_BIDS = 0;
 
 /* TODO think about this -> should i use enums for ranks and suits? */
-const int NRANK = 6;
+const guint32 NRANK = 6;
 enum rank
 {
     ace,
@@ -36,17 +36,17 @@ enum rank
 };
 const enum rank RANKS[] = { ace, ten, king, queen, jack, nine };
 /* "counter" cards are ALWAYS worth points. */
-const int NCOUNTERS = 3;
+const guint32 NCOUNTERS = 3;
 const enum rank COUNTERS[] = { ace, ten, king };
 /* sometimes there's such a thing as "noncounter" cards.
  * these are worthless (i.e., no points). the scoring system
  * should be agreed on before play begins (i.e., the first
  * card is dealt).
  */
-const int NNONCOUNTERS = 3;
+const guint32 NNONCOUNTERS = 3;
 const enum rank NONCOUNTERS[] = { queen, jack, nine };
 
-const int NSUIT = 4;
+const guint32 NSUIT = 4;
 enum suit
 {
     clubs,
@@ -76,6 +76,12 @@ void
 card_free(struct card* c)
 {
     g_slice_free(struct card, c);
+}
+
+void
+card_free_gfunc(gpointer data, gpointer user_data)
+{
+    card_free((struct card*)data);
 }
 
 int
@@ -138,7 +144,7 @@ card_str(struct card* card)
 }
 
 void
-card_show(struct card* card, const gchar *fmtstr)
+card_show(struct card* card, const gchar* fmtstr)
 {
     GString* buf = card_str(card);
     printf(fmtstr, buf->str);
@@ -185,31 +191,31 @@ card_tests()
     card_free(c42);
 
     /* test show() */
-    struct card *c51 = card_new(ace, spades);
+    struct card* c51 = card_new(ace, spades);
     card_show(c51, "card is %s.\n");
     card_free(c51);
 
     printf("[+] Finished tests for card.\n");
 }
 
-const int PACK_CARD_COUNT = 48;
+const guint32 PACK_CARD_COUNT = 48;
 struct deck
 {
     GList* cards;
-    int ncards;
+    guint32 ncards;
 };
 
 struct deck*
 deck_new()
 {
-    struct deck* d = malloc(sizeof(struct deck));
+    struct deck* d = g_slice_new(struct deck);
     d->ncards = PACK_CARD_COUNT;
     d->cards = NULL;
 
     /* for each rank, make a card of each suit */
     for (unsigned long i = 0; i < NRANK; i++) {
         for (unsigned long j = 0; j < NSUIT; j++) {
-            struct card* cur = malloc(sizeof(struct card));
+            struct card* cur = g_slice_new(struct card);
             cur->rank = RANKS[i];
             cur->suit = SUITS[j];
             d->cards = g_list_append(d->cards, cur);
@@ -220,11 +226,37 @@ deck_new()
 }
 
 void
-deck_free(struct deck* deck)
+deck_free(struct deck* d)
 {
-    g_list_free_full(deck->cards, free);
-    free(deck);
+    g_list_foreach(d->cards, card_free_gfunc, NULL);
+    g_slice_free(struct deck, d);
 }
+
+struct card*
+deck_get(struct deck* d, guint32 pos)
+{
+    struct card* c = g_list_nth_data(d->cards, pos);
+    return c;
+}
+
+struct card*
+deck_draw(struct deck* d, guint32 pos)
+{
+    struct card* c = deck_get(d, pos);
+    d->cards = g_list_remove(d->cards, c);
+    d->ncards = d->ncards - 1;
+
+    return c;
+}
+
+// GHashTable* deck_hash_table(struct deck *d)
+// {
+//     GHashTable* ht = g_hash_table_new(g_str_hash, g_str_equal);
+//     for (guint32 i = 0; i < d->ncards; i++) {
+//         struct card *c = deck_get(d, i);
+//         g_hash_table_insert(ht, card_human(d->), d->cards[i])
+//     }
+// }
 
 void
 deck_show(struct deck* deck)
@@ -232,28 +264,47 @@ deck_show(struct deck* deck)
     g_list_foreach(deck->cards, (GFunc)card_show, NULL);
 }
 
-struct card*
-deck_draw(struct deck* deck, gint32 pos)
+void
+deck_tests()
 {
-    GList* cards = deck->cards;
-    struct card* c = g_list_nth_data(cards, pos);
-    deck->cards = g_list_remove(cards, c);
-    deck->ncards = deck->ncards - 1;
+    printf("[+] Running tests for deck.\n");
 
-    return c;
+    /* test new() */
+    struct deck* d11 = deck_new();
+    assert(d11->ncards == PACK_CARD_COUNT);
+    assert(g_list_length(d11->cards) == PACK_CARD_COUNT);
+    deck_free(d11);
+
+    /* test get() */
+    struct deck* d21 = deck_new();
+    struct card* c21 = deck_get(d21, 0);
+    assert(c21->rank == ace && c21->suit == clubs);
+    struct card* c22 = deck_get(d21, PACK_CARD_COUNT - 1);
+    assert(c22->rank == nine && c22->suit == spades);
+    deck_free(d21);
+
+    /* test hashmap() */
+    // struct deck* d21 = deck_new();
+    // GHashTable* t21 = deck_hash_table(d21);
+    // assert(g_hash_table_size(t21) == d->ncards);
+    // g_hash_table_destroy(t21);
+    // deck_free(d21);
+
+    printf("[+] Finished tests for deck.\n");
 }
 
-const int NPLAYERS = 2; /* 4 players can play in 2 teams of 2. is this right? */
+const guint32 NPLAYERS =
+  2; /* 4 players can play in 2 teams of 2. is this right? */
 struct player
 {
-    int id;
+    guint32 id;
     char* name;
-    int is_dealer;
+    guint32 is_dealer;
     GList* hand;
 };
 
 void
-player_init(struct player* player, char* name, int is_dealer, GList* hand)
+player_init(struct player* player, char* name, guint32 is_dealer, GList* hand)
 {
     player->id = rand(); /* random number */
     player->name = name; /* TODO think about this -> is this bad practice? */
@@ -269,13 +320,13 @@ player_is_dealer(struct player* player)
 
 GRand* grand = NULL;
 int
-get_rand_int(gint32 begin, gint32 end)
+get_rand_int(guint32 begin, guint32 end)
 {
     if (grand == NULL) {
         grand = g_rand_new_with_seed(1);
     }
 
-    gint32 num = g_rand_int_range(grand, begin, end);
+    guint32 num = g_rand_int_range(grand, begin, end);
 
     return num;
 }
