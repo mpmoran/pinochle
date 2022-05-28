@@ -573,6 +573,15 @@ pinochle_deck_get_deck(struct pinochle_deck* pd, guint32 pos)
     return d;
 }
 
+struct deck*
+pinochle_deck_get_deck_rand(struct pinochle_deck* pd)
+{
+    guint32 rint = get_rand_int_range(0, pd->ndecks);
+    struct deck* d = pinochle_deck_get_deck(pd, rint);
+
+    return d;
+}
+
 struct card*
 pinochle_deck_get_card(struct pinochle_deck* pd,
                        guint32 deck_pos,
@@ -580,6 +589,15 @@ pinochle_deck_get_card(struct pinochle_deck* pd,
 {
     struct deck* d = pinochle_deck_get_deck(pd, deck_pos);
     struct card* c = deck_get(d, card_pos);
+
+    return c;
+}
+
+struct card*
+pinochle_deck_draw_rand(struct pinochle_deck* pd)
+{
+    struct deck* d = pinochle_deck_get_deck_rand(pd);
+    struct card* c = deck_draw_rand(d);
 
     return c;
 }
@@ -599,7 +617,13 @@ pinochle_deck_tests()
     struct pinochle_deck* pd31 = pinochle_deck_new(2);
     struct deck* d31 = pinochle_deck_get_deck(pd31, 0);
     assert(deck_is_valid(d31) == 1);
-    deck_free(d31);
+    pinochle_deck_free(pd31);
+
+    /* test get_deck_rand() */
+    struct pinochle_deck* pd41 = pinochle_deck_new(2);
+    struct deck* d41 = pinochle_deck_get_deck_rand(pd41);
+    assert(deck_is_valid(d41) == 1);
+    pinochle_deck_free(pd41);
 
     /* test get_card() */
     struct pinochle_deck* pd21 = pinochle_deck_new(2);
@@ -607,7 +631,11 @@ pinochle_deck_tests()
     assert(card_is_valid(c21) == 1);
     pinochle_deck_free(pd21);
 
-    /* test draw() */
+    /* test draw_rand() */
+    struct pinochle_deck* pd51 = pinochle_deck_new(2);
+    struct card* c51 = pinochle_deck_draw_rand(pd51);
+    assert(card_is_valid(c51) == 1);
+    pinochle_deck_free(pd51);
 
     /* test add() */
 
