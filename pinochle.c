@@ -93,7 +93,7 @@ struct card
 struct card*
 card_new(enum rank rank, enum suit suit)
 {
-    struct card* c = g_slice_new(struct card);
+    struct card* c = malloc(sizeof(struct card));
     // struct card* c = malloc(sizeof(struct card));
     c->suit = suit;
     c->rank = rank;
@@ -104,7 +104,7 @@ card_new(enum rank rank, enum suit suit)
 void
 card_free(struct card* c)
 {
-    g_slice_free(struct card, c);
+    free(c);
     // free(c);
 }
 
@@ -295,7 +295,7 @@ struct hand
 struct hand*
 hand_new()
 {
-    struct hand* h = g_slice_new(struct hand);
+    struct hand* h = malloc(sizeof(struct hand));
 
     return h;
 }
@@ -303,7 +303,7 @@ hand_new()
 void
 hand_free(struct hand* h)
 {
-    g_slice_free(struct hand, h);
+    free(h);
 }
 
 const guint32 DECK_CARD_COUNT = 24;
@@ -317,7 +317,7 @@ struct deck
 struct deck*
 deck_new()
 {
-    struct deck* d = g_slice_new(struct deck);
+    struct deck* d = malloc(sizeof(struct deck));
     d->cards = NULL;
     /* for each rank, make a card of each suit */
     for (unsigned long i = 0; i < NRANK; i++) {
@@ -357,7 +357,7 @@ deck_free(struct deck* d)
     for (guint32 i = 0; i < d->ncards; i++) {
         card_free(deck_get(d, i));
     }
-    g_slice_free(struct deck, d);
+    free(d);
 }
 
 struct card*
@@ -394,7 +394,7 @@ deck_is_valid(struct deck* d)
 void
 deck_hash_table_free_value(void* num)
 {
-    g_slice_free(guint32, num);
+    free(num);
 }
 
 GHashTable*
@@ -405,7 +405,7 @@ deck_hash_table_new(struct deck* d)
     for (guint32 i = 0; i < deck_count(d); i++) {
         struct card* c = deck_get(d, i);
         GString* c_str = card_str(c);
-        guint32* cnt = g_slice_new(guint32);
+        guint32* cnt = malloc(sizeof(guint32));
         *cnt = 1;
         printf("Adding %s\n", c_str->str);
         g_hash_table_insert(ht, c_str, cnt);
@@ -429,7 +429,7 @@ deck_hash_table_free(GHashTable* ht)
 
 // GList* deck_str_list(struct deck* d)
 // {
-//     gpointer lst = g_slice_new(gpointer);
+//     gpointer lst = malloc(sizeof(gpointer));
 //     g_list_foreach(d->cards, deck_str_list_gfunc, lst);
 
 //     return (GList*)lst;
@@ -561,7 +561,7 @@ player_get_next_id()
 struct player*
 player_new(const gchar* name, guint32 is_dealer)
 {
-    struct player* p = g_slice_new(struct player);
+    struct player* p = malloc(sizeof(struct player));
     p->id = player_get_next_id();
     p->name = g_string_new(name);
     p->is_dealer = is_dealer;
@@ -575,7 +575,7 @@ player_free(struct player* p)
 {
     g_string_free(p->name, FALSE);
     hand_free(p->hand);
-    g_slice_free(struct player, p);
+    free(p);
 }
 
 int
