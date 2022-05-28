@@ -565,6 +565,14 @@ pinochle_deck_free(struct pinochle_deck* pd)
     free(pd);
 }
 
+struct card* pinochle_deck_get_card(struct pinochle_deck* pd, guint32 deck_pos, guint32 card_pos)
+{
+    struct deck* d = g_list_nth_data(pd->deck_pool, deck_pos);
+    struct card* c = deck_get(d, card_pos);
+
+    return c;
+}
+
 void
 pinochle_deck_tests()
 {
@@ -575,6 +583,16 @@ pinochle_deck_tests()
     assert(g_list_length(pd11->deck_pool) == 2);
     assert(pd11->ndecks == 2);
     pinochle_deck_free(pd11);
+
+    /* test get() */
+    struct pinochle_deck* pd21 = pinochle_deck_new(2);
+    struct card* c21 = pinochle_deck_get_card(pd21, 0, 0);
+    assert(card_is_valid(c21) == 1);
+    pinochle_deck_free(pd21);
+
+    /* test draw() */
+
+    /* test add() */
 
     printf("[+] Finished tests for pinochle_deck.\n");
 }
