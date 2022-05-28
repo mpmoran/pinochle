@@ -94,6 +94,7 @@ struct card*
 card_new(enum rank rank, enum suit suit)
 {
     struct card* c = g_slice_new(struct card);
+    // struct card* c = malloc(sizeof(struct card));
     c->suit = suit;
     c->rank = rank;
 
@@ -104,12 +105,7 @@ void
 card_free(struct card* c)
 {
     g_slice_free(struct card, c);
-}
-
-void
-card_free_gfunc(gpointer data, gpointer user_data)
-{
-    card_free((struct card*)data);
+    // free(c);
 }
 
 guint32
@@ -126,6 +122,16 @@ card_is_valid(struct card* c)
             return 0;
         }
 
+    } else {
+        return 0;
+    }
+}
+
+gint32
+card_compare(struct card* c1, struct card* c2)
+{
+    if (c1->rank == c2->rank && c1->suit == c2->suit) {
+        return 1;
     } else {
         return 0;
     }
@@ -232,7 +238,7 @@ card_tests()
     struct card* c63 = card_new(ace, spades);
     c63->suit = 99;
     assert(card_is_valid(c63) == 0);
-    card_free(c62);
+    card_free(c63);
 
     /* test is_counter() */
     struct card* c21 = card_new(ace, spades);
@@ -266,6 +272,16 @@ card_tests()
     struct card* c51 = card_new(ace, spades);
     card_show(c51, "card is %s.\n");
     card_free(c51);
+
+    /* test compare() */
+    struct card* c71 = card_new(ace, spades);
+    struct card* c72 = card_new(queen, hearts);
+    struct card* c73 = card_new(ace, spades);
+    assert(card_compare(c71, c73) == 1);
+    assert(card_compare(c71, c72) == 0);
+    card_free(c71);
+    card_free(c72);
+    card_free(c73);
 
     printf("[+] Finished tests for card.\n");
 }
@@ -315,13 +331,6 @@ deck_new()
     return d;
 }
 
-void
-deck_free(struct deck* d)
-{
-    g_list_foreach(d->cards, card_free_gfunc, NULL);
-    g_slice_free(struct deck, d);
-}
-
 guint32
 deck_count(struct deck* d)
 {
@@ -339,6 +348,16 @@ deck_get(struct deck* d, guint32 pos)
                pos);
         return NULL;
     }
+}
+
+void
+deck_free(struct deck* d)
+{
+    // fix this g_list_foreach(d->cards, card_free_gfunc, NULL);
+    for (guint32 i = 0; i < d->ncards; i++) {
+        card_free(deck_get(d, i));
+    }
+    g_slice_free(struct deck, d);
 }
 
 struct card*
@@ -360,32 +379,46 @@ deck_draw_rand(struct deck* d)
     return c;
 }
 
-// void
-// deck_hash_table_free_value(void* num)
-// {
-//     g_slice_free(guint32, num);
-// }
+void
+deck_add(struct deck* d, struct card* c)
+{
+    d->cards = g_list_append(d->cards, c);
+}
 
-// GHashTable*
-// deck_hash_table_new(struct deck* d)
-// {
-//     GHashTable* ht = g_hash_table_new_full(
-//       g_str_hash, g_str_equal, card_str_free, deck_hash_table_free_value);
-//     for (guint32 i = 0; i < deck_count(d); i++) {
-//         struct card* c = deck_get(d, i);
-//         guint32* cnt = g_slice_new(guint32);
-//         *cnt = 1;
-//         g_hash_table_insert(ht, card_str(c), cnt);
-//     }
+gint32
+deck_is_valid(struct deck* d)
+{
+    return -1;
+}
 
-//     return ht;
-// }
+void
+deck_hash_table_free_value(void* num)
+{
+    g_slice_free(guint32, num);
+}
 
-// void
-// deck_hash_table_free(GHashTable* ht)
-// {
-//     g_hash_table_destroy(ht);
-// }
+GHashTable*
+deck_hash_table_new(struct deck* d)
+{
+    GHashTable* ht = g_hash_table_new_full(
+      g_str_hash, g_str_equal, card_str_free, deck_hash_table_free_value);
+    for (guint32 i = 0; i < deck_count(d); i++) {
+        struct card* c = deck_get(d, i);
+        GString* c_str = card_str(c);
+        guint32* cnt = g_slice_new(guint32);
+        *cnt = 1;
+        printf("Adding %s\n", c_str->str);
+        g_hash_table_insert(ht, c_str, cnt);
+    }
+
+    return ht;
+}
+
+void
+deck_hash_table_free(GHashTable* ht)
+{
+    g_hash_table_destroy(ht);
+}
 
 // void deck_str_list_gfunc(gpointer card, gpointer lst)
 // {
@@ -479,8 +512,28 @@ deck_tests()
 
     /* test show() */
     struct deck* d71 = deck_new();
+    printf("Number of cards is %u and %u.\n",
+           g_list_length(d71->cards),
+           d71->ncards);
     deck_show(d71);
     deck_free(d71);
+
+    /* test add() */
+    struct deck* d91 = deck_new();
+    struct card* c91 = card_new(ace, spades);
+    // deck_add(d91, c91);
+    // struct card *c92 = deck_get(d91, 8);
+    // assert(deck_count(d91) == DECK_CARD_COUNT + 1);
+    // assert(card_compare(c91, c92) == 1);
+    deck_free(d91);
+
+    /* test is_valid() */
+    // struct deck *d81 = deck_new();
+    // struct deck *d82 = deck_new();
+    // assert(deck_is_valid(d81) == 1);
+    // // TODO here
+    // deck_free(d81);
+    // deck_free(d82);
 
     printf("[+] Finished tests for deck.\n");
 }
