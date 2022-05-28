@@ -307,7 +307,6 @@ hand_free(struct hand* h)
 }
 
 const guint32 DECK_CARD_COUNT = 24;
-const guint32 NDECKS = 2;
 struct deck
 {
     GList* cards;
@@ -522,12 +521,12 @@ deck_tests()
     struct card* c91 = card_new(ace, clubs);
     deck_add(d91, c91);
     assert(deck_count(d91) == DECK_CARD_COUNT + 1);
-    struct card *c92 = deck_get(d91, 0);
+    struct card* c92 = deck_get(d91, 0);
     assert(card_compare(c91, c92) == 1);
     deck_free(d91);
 
     /* test is_valid() */
-    struct deck *d81 = deck_new();
+    struct deck* d81 = deck_new();
     // struct deck *d82 = deck_new();
     assert(deck_is_valid(d81) == 1);
     // // TODO here
@@ -535,6 +534,49 @@ deck_tests()
     // deck_free(d82);
 
     printf("[+] Finished tests for deck.\n");
+}
+
+const guint32 NDECKS = 2;
+struct pinochle_deck
+{
+    GList* deck_pool;
+    guint32 ndecks;
+};
+
+struct pinochle_deck*
+pinochle_deck_new(guint32 ndecks)
+{
+    struct pinochle_deck* pd = malloc(sizeof(struct pinochle_deck));
+    pd->deck_pool = NULL;
+    for (guint32 i = 0; i < ndecks; i++) {
+        struct deck* d = deck_new();
+        pd->deck_pool = g_list_append(pd->deck_pool, d);
+    }
+    pd->ndecks = ndecks;
+
+    return pd;
+}
+
+/* TODO add get() and draw() and is_valid() functions */
+
+void
+pinochle_deck_free(struct pinochle_deck* pd)
+{
+    free(pd);
+}
+
+void
+pinochle_deck_tests()
+{
+    printf("[+] Running tests for pinochle_deck.\n");
+
+    /* test new() */
+    struct pinochle_deck* pd11 = pinochle_deck_new(2);
+    assert(g_list_length(pd11->deck_pool) == 2);
+    assert(pd11->ndecks == 2);
+    pinochle_deck_free(pd11);
+
+    printf("[+] Finished tests for pinochle_deck.\n");
 }
 
 const guint32 NPLAYERS =
