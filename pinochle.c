@@ -325,6 +325,24 @@ void card_list_free(struct card_list *cl)
     free(cl);
 }
 
+void card_list_add(struct card_list* cl, struct card* c)
+{
+    cl->cards = g_list_append(cl->cards, c);
+}
+
+guint32 card_list_count(struct card_list* cl)
+{
+    return g_list_length(cl->cards);
+}
+
+struct card* card_list_remove(struct card_list* cl, guint32 pos)
+{
+    struct card* c= g_list_nth_data(cl->cards, pos);
+    cl->cards = g_list_remove(cl->cards, c);
+
+    return c;
+}
+
 void card_list_tests()
 {
     printf("[+] Running tests for card_list.\n");
@@ -333,6 +351,30 @@ void card_list_tests()
     struct card_list* cl11 = card_list_new();
     assert(cl11->cards == NULL);
     card_list_free(cl11);
+
+    /* test add() */
+    struct card_list* cl21 = card_list_new();
+    struct card* c21 = card_new(ace, spades); 
+    card_list_add(cl21, c21);
+    assert(g_list_length(cl21->cards) == 1);
+    card_list_free(cl21);
+
+    /* test count() */
+    struct card_list* cl31 = card_list_new();
+    assert(card_list_count(cl31) == 0);
+    struct card* c31 = card_new(ace, spades); 
+    card_list_add(cl31, c31);
+    assert(card_list_count(cl31) == 1);
+    card_list_free(cl31);
+
+    /* test remove() */
+    struct card_list* cl41 = card_list_new();
+    struct card* c41 = card_new(ace, spades); 
+    card_list_add(cl41, c41);
+    struct card* c42 = card_list_remove(cl41, 0);
+    assert(card_list_count(cl41) == 0);
+    assert(card_compare(c41, c42) == 1);
+    card_list_free(cl41);
 
     printf("[+] Finished tests for card_list.\n");
 }
