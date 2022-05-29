@@ -306,17 +306,17 @@ card_tests()
 }
 
 // TODO make this and tests
-struct hand
+struct card_list 
 {
-    gchar* placeholder;
+    GList* cards;
 };
 
-struct hand*
-hand_new()
+struct card_list*
+card_list_new()
 {
-    struct hand* h = malloc(sizeof(struct hand));
+    struct card_list* cl = malloc(sizeof(struct card_list));
 
-    return h;
+    return cl;
 }
 
 void
