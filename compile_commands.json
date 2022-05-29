@@ -1,6 +1,0 @@
-[
-{
-  "directory": "/home/michael/projects/pinochle",
-  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-I", "/home/michael/.xmake/packages/g/glib/2.71.0/4a5f04b222c1415eba391d15a19ad734/include/glib-2.0", "-I", "/home/michael/.xmake/packages/g/glib/2.71.0/4a5f04b222c1415eba391d15a19ad734/lib/glib-2.0/include", "-I", "/home/michael/.xmake/packages/l/libffi/3.4.2/3760478a5e514b6396aaffaa11893feb/include", "-I", "/home/michael/.xmake/packages/p/pcre/8.45/9cd5a9d79f044f81a098d2df629c49af/include", "-I", "/home/michael/.xmake/packages/z/zlib/v1.2.12/f77d14620f8f47b2a7615c6bc3246284/include", "-I", "/home/michael/.xmake/packages/l/libiconv/1.16/86e4b1ca86b741449180f2851cd9186a/include", "-o", "build/.objs/console/linux/x86_64/release/pinochle.c.o", "pinochle.c"],
-  "file": "pinochle.c"
-}]
