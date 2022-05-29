@@ -315,14 +315,26 @@ struct card_list*
 card_list_new()
 {
     struct card_list* cl = malloc(sizeof(struct card_list));
+    cl->cards = NULL;
 
     return cl;
 }
 
-void
-hand_free(struct hand* h)
+void card_list_free(struct card_list *cl)
 {
-    free(h);
+    free(cl);
+}
+
+void card_list_tests()
+{
+    printf("[+] Running tests for card_list.\n");
+
+    /* test creation */
+    struct card_list* cl11 = card_list_new();
+    assert(cl11->cards == NULL);
+    card_list_free(cl11);
+
+    printf("[+] Finished tests for card_list.\n");
 }
 
 const guint32 DECK_CARD_COUNT = 24;
@@ -709,7 +721,7 @@ player_new(const gchar* name, guint32 is_dealer)
     p->id = player_get_next_id();
     p->name = g_string_new(name);
     p->is_dealer = is_dealer;
-    p->hand = hand_new();
+    p->hand = card_list_new();
 
     return p;
 }
@@ -718,7 +730,7 @@ void
 player_free(struct player* p)
 {
     g_string_free(p->name, FALSE);
-    hand_free(p->hand);
+    card_list_free(p->hand);
     free(p);
 }
 
@@ -793,6 +805,7 @@ main(int argc, char** argv)
     }
 
     card_tests();
+    card_list_tests();
     deck_tests();
     pinochle_deck_tests();
     player_tests();
