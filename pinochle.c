@@ -41,6 +41,15 @@ get_rand_int_range(guint32 begin, guint32 end)
 
     return num;
 }
+
+gpointer get_rand_list_elem(GList* lst)
+{
+    guint32 len = g_list_length(lst);
+    guint32 rand_pos = get_rand_int_range(0, len);
+    gpointer data = g_list_nth_data(lst, rand_pos);
+
+    return data;
+}
 /* *** */
 
 const guint32 NUM_CARDS_PER_PLAYER = 12;
@@ -84,10 +93,18 @@ enum suit
 };
 const enum suit SUITS[] = { clubs, diamonds, hearts, spades };
 
+enum card_state
+{
+    in_deck,
+    in_play,
+    in_pile
+};
+
 struct card
 {
     enum suit suit;
     enum rank rank;
+    enum card_state state;
 };
 
 struct card*
@@ -97,6 +114,7 @@ card_new(enum rank rank, enum suit suit)
     // struct card* c = malloc(sizeof(struct card));
     c->suit = suit;
     c->rank = rank;
+    c->state = in_deck;
 
     return c;
 }
@@ -225,6 +243,7 @@ card_tests()
     struct card* c11 = card_new(ace, spades);
     assert(c11->rank == ace);
     assert(c11->suit == spades);
+    assert(c11->state == in_deck);
     card_free(c11);
 
     /* test is_valid() */
@@ -361,7 +380,7 @@ struct card*
 deck_draw(struct deck* d, guint32 pos)
 {
     struct card* c = deck_get(d, pos);
-    d->cards = g_list_remove(d->cards, c);
+    c->state = in_play;
 
     return c;
 }
@@ -490,18 +509,18 @@ deck_tests()
     /* test draw() */
     struct deck* d31 = deck_new();
     struct card* c31 = deck_draw(d31, 0);
-    assert(c31->rank == ace && c31->suit == clubs);
-    assert(deck_count(d31) == DECK_CARD_COUNT - 1);
+    assert(c31->rank == ace && c31->suit == clubs && c31->state == in_play);
+    // assert(deck_count(d31) == DECK_CARD_COUNT - 1);
     struct card* c32 = deck_draw(d31, DECK_CARD_COUNT - 2);
     assert(card_is_valid(c32) == 1);
-    assert(deck_count(d31) == DECK_CARD_COUNT - 2);
+    // assert(deck_count(d31) == DECK_CARD_COUNT - 2);
     deck_free(d31);
 
     /* test draw_rand() */
     struct deck* d61 = deck_new();
     struct card* c61 = deck_draw_rand(d61);
     assert(card_is_valid(c61) == 1);
-    assert(deck_count(d61) == DECK_CARD_COUNT - 1);
+    // assert(deck_count(d61) == DECK_CARD_COUNT - 1);
     deck_free(d61);
 
     /* test hashmap() */
@@ -602,6 +621,17 @@ pinochle_deck_draw_rand(struct pinochle_deck* pd)
     return c;
 }
 
+GList* pinochle_deck_draw_rand_n(struct pinochle_deck* pd, guint32 ncards)
+{
+    GList* cards = NULL;
+    for (guint32 i = 0; i < ncards; i++) {
+        struct card* c = pinochle_deck_draw_rand(pd);
+        cards = g_list_append(cards, c);
+    }
+
+    return cards;
+}
+
 void
 pinochle_deck_tests()
 {
@@ -637,7 +667,17 @@ pinochle_deck_tests()
     assert(card_is_valid(c51) == 1);
     pinochle_deck_free(pd51);
 
-    /* test add() */
+    /* test draw_rand_n() */
+    struct pinochle_deck* pd61 = pinochle_deck_new(2);
+    GList* cl61 = pinochle_deck_draw_rand_n(pd61, 2);
+    assert(g_list_length(cl61) == 2);
+    for (guint32 i = 0; i < 2; i++) {
+        struct card *c61 = g_list_nth_data(cl61, i);
+        assert(card_is_valid(c61));
+    }
+    pinochle_deck_free(pd61);
+
+    /* TODO test add() */
 
     printf("[+] Finished tests for pinochle_deck.\n");
 }
@@ -702,6 +742,44 @@ player_tests()
     /* test new() */
 
     /* test is_dealer() */
+
+    printf("[+] Finished tests for player.\n");
+}
+
+struct pinochle {
+    GList* players;
+    struct pinochle_deck* deck;
+};
+
+struct pinochle* pinochle_new(guint32 nplayers, guint32 ndecks)
+{
+    struct pinochle* pn = malloc(sizeof(struct pinochle));
+    pn->players = NULL;
+    for (guint32 i = 0; i < nplayers; i++) {
+        struct player* p = player_new("?", 0);
+        pn->players = g_list_append(pn->players, p);
+    }
+    pn->deck = pinochle_deck_new(ndecks);
+
+    /* pick dealer */
+    struct player* dealer = get_rand_list_elem(pn->players);
+    dealer->is_dealer = 1;
+
+    return pn;
+}
+
+void pinochle_free(struct pinochle* p)
+{
+    // TODO left off here
+    // g_list_foreach(p->players, player_free(struct player *p), gpointer user_data)
+    free(p);
+}
+
+void pinochle_tests()
+{
+    printf("[+] Running tests for player.\n");
+
+
 
     printf("[+] Finished tests for player.\n");
 }
