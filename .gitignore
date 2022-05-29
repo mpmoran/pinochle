@@ -1,3 +1,5 @@
 .cache/
 *.sublime-project
 *.sublime-workspace
+.xmake/
+build/
