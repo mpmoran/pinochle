@@ -757,7 +757,7 @@ struct player
     guint32 id;
     GString* name;
     guint32 is_dealer;
-    struct hand* hand;
+    struct card_list* hand;
 };
 
 guint32 player_next_id = 0;
@@ -808,6 +808,14 @@ player_tests()
     assert(id12 == 1);
 
     /* test new() */
+    GString* n11 = g_string_new("paulie walnuts");
+    struct player *p11 = player_new(n11->str, 0);
+    assert(p11->id == 2);
+    assert(g_string_equal(p11->name, n11) == 0);
+    assert(player_is_dealer(p11) == 0);
+    assert(card_list_count(p11->hand) == 0);
+    g_string_free(n11, FALSE);
+    player_free(p11);
 
     /* test is_dealer() */
 
