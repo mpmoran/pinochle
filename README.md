@@ -2,10 +2,16 @@
 
 ## how to compile
 
-I think it goes something like this . . .
+xmake is required.
 
 ```sh
 $ git clone https://github.com/mpmoran/pinochle.git
 $ cd pinochle
-$ ?
+$ xmake
+```
+
+## how to run
+
+```sh
+$ xmake run console
 ```
