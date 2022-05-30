@@ -342,6 +342,12 @@ card_list_count(struct card_list* cl)
 struct card*
 card_list_remove(struct card_list* cl, guint32 pos)
 {
+    guint32 len = g_list_length(cl->cards);
+    if (len == 0) {
+        printf("ERROR: Cannot remove card from empty card_list.\n");
+
+        return NULL;
+    }
     struct card* c = g_list_nth_data(cl->cards, pos);
     cl->cards = g_list_remove(cl->cards, c);
 
@@ -380,6 +386,7 @@ card_list_tests()
     struct card* c42 = card_list_remove(cl41, 0);
     assert(card_list_count(cl41) == 0);
     assert(card_compare(c41, c42) == 1);
+    assert(card_list_remove(cl41, 0) == NULL);
     card_list_free(cl41);
 
     printf("[+] Finished tests for card_list.\n");
