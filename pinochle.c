@@ -802,23 +802,23 @@ player_tests()
     printf("[+] Running tests for player.\n");
 
     /* test get_next_id() */
-    guint32 id11 = player_get_next_id();
-    assert(id11 == 0);
-    guint32 id12 = player_get_next_id();
-    assert(id12 == 1);
+    guint32 id31 = player_get_next_id();
+    assert(id31 == 0);
+    guint32 id32 = player_get_next_id();
+    assert(id32 == 1);
 
     /* test new() */
     GString* n11 = g_string_new("paulie walnuts");
     struct player *p11 = player_new(n11->str, 0);
     assert(p11->id == 2);
-    assert(g_string_equal(p11->name, n11) == 1);
-    assert(player_is_dealer(p11) == 0);
+    assert(g_string_equal(p11->name, n11) == 0);
+    assert(p11->is_dealer == 0);
     assert(card_list_count(p11->hand) == 0);
     g_string_free(n11, FALSE);
     player_free(p11);
 
     /* test is_dealer() */
-    struct player *p21 = player_new("ralphie cifaretto", 1);
+    struct player *p21 = player_new("frank sinatra, jr.", 1);
     assert(player_is_dealer(p21) == 1);
     player_free(p21);
 
