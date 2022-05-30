@@ -875,9 +875,11 @@ pinochle_new(guint32 nplayers, guint32 ndecks, const gchar** names)
 void
 pinochle_free(struct pinochle* p)
 {
-    // TODO left off here
-    // g_list_foreach(p->players, player_free(struct player *p), gpointer
-    // user_data)
+    for (guint32 i = 0; i < g_list_length(p->players); i++) {
+        player_free(g_list_nth_data(p->players, i));
+    }
+    g_list_free(p->players);
+    pinochle_deck_free(p->deck);
     free(p);
 }
 
