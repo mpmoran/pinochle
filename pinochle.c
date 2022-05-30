@@ -150,9 +150,9 @@ gint32
 card_compare(struct card* c1, struct card* c2)
 {
     if (c1->rank == c2->rank && c1->suit == c2->suit) {
-        return 1;
-    } else {
         return 0;
+    } else {
+        return -1;
     }
 }
 
@@ -197,6 +197,10 @@ card_str(struct card* card)
         g_string_append(buf, "jack");
     } else if (rank == nine) {
         g_string_append(buf, "nine");
+    } else {
+        g_string_append(buf, "unknown");
+
+        return buf;
     }
 
     g_string_append(buf, " of ");
@@ -287,6 +291,11 @@ card_tests()
     assert(g_strcmp0(c42_str->str, "queen of hearts") == 0);
     g_string_free(c42_str, FALSE);
     card_free(c42);
+    struct card* c43 = card_new(queen, hearts);
+    GString* c43_str = card_str(c43);
+    assert(g_strcmp0(c43_str->str, "queen of hearts") == 0);
+    g_string_free(c43_str, FALSE);
+    card_free(c43);
 
     /* test show() */
     struct card* c51 = card_new(ace, spades);
@@ -297,8 +306,8 @@ card_tests()
     struct card* c71 = card_new(ace, spades);
     struct card* c72 = card_new(queen, hearts);
     struct card* c73 = card_new(ace, spades);
-    assert(card_compare(c71, c73) == 1);
-    assert(card_compare(c71, c72) == 0);
+    assert(card_compare(c71, c73) == 0);
+    assert(card_compare(c71, c72) == -1);
     card_free(c71);
     card_free(c72);
     card_free(c73);
@@ -385,7 +394,7 @@ card_list_tests()
     card_list_add(cl41, c41);
     struct card* c42 = card_list_remove(cl41, 0);
     assert(card_list_count(cl41) == 0);
-    assert(card_compare(c41, c42) == 1);
+    assert(card_compare(c41, c42) == 0);
     assert(card_list_remove(cl41, 0) == NULL);
     card_list_free(cl41);
 
@@ -608,7 +617,7 @@ deck_tests()
     deck_add(d91, c91);
     assert(deck_count(d91) == DECK_CARD_COUNT + 1);
     struct card* c92 = deck_get(d91, 0);
-    assert(card_compare(c91, c92) == 1);
+    assert(card_compare(c91, c92) == 0);
     deck_free(d91);
 
     /* test is_valid() */
@@ -757,7 +766,7 @@ struct player
     guint32 id;
     GString* name;
     guint32 is_dealer;
-    struct hand* hand;
+    struct card_list* hand;
 };
 
 guint32 player_next_id = 0;
@@ -802,14 +811,25 @@ player_tests()
     printf("[+] Running tests for player.\n");
 
     /* test get_next_id() */
-    guint32 id11 = player_get_next_id();
-    assert(id11 == 0);
-    guint32 id12 = player_get_next_id();
-    assert(id12 == 1);
+    guint32 id31 = player_get_next_id();
+    assert(id31 == 0);
+    guint32 id32 = player_get_next_id();
+    assert(id32 == 1);
 
     /* test new() */
+    GString* n11 = g_string_new("paulie walnuts");
+    struct player *p11 = player_new(n11->str, 0);
+    assert(p11->id == 2);
+    assert(g_string_equal(p11->name, n11) == 1);
+    assert(p11->is_dealer == 0);
+    assert(card_list_count(p11->hand) == 0);
+    g_string_free(n11, FALSE);
+    player_free(p11);
 
     /* test is_dealer() */
+    struct player *p21 = player_new("frank sinatra, jr.", 1);
+    assert(player_is_dealer(p21) == 1);
+    player_free(p21);
 
     printf("[+] Finished tests for player.\n");
 }
