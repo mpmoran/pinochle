@@ -15,7 +15,7 @@
 
 #define PROJECT_NAME "pinochle"
 
-/* helpers */
+/* *** helpers *** */
 GRand* grand = NULL;
 guint32
 get_rand_int()
@@ -51,7 +51,7 @@ get_rand_list_elem(GList* lst)
 
     return data;
 }
-/* *** */
+/* ***** */
 
 const guint32 NUM_CARDS_PER_PLAYER = 12;
 const guint32 NUM_CARDS_DEALT_AT_ONCE = 3;
@@ -101,6 +101,8 @@ enum card_state
     in_pile
 };
 
+
+/* *** card *** */
 struct card
 {
     enum suit suit;
@@ -314,8 +316,10 @@ card_tests()
 
     printf("[+] Finished tests for card.\n");
 }
+/* ***** */
 
-// TODO make this and tests
+
+/* *** card_list *** */
 struct card_list
 {
     GList* cards;
@@ -400,7 +404,9 @@ card_list_tests()
 
     printf("[+] Finished tests for card_list.\n");
 }
+/* ***** */
 
+/* *** deck *** */
 const guint32 DECK_CARD_COUNT = 24;
 struct deck
 {
@@ -630,7 +636,9 @@ deck_tests()
 
     printf("[+] Finished tests for deck.\n");
 }
+/* ***** */
 
+/* *** pinochle_deck *** */
 const guint32 NDECKS = 2;
 struct pinochle_deck
 {
@@ -758,7 +766,10 @@ pinochle_deck_tests()
 
     printf("[+] Finished tests for pinochle_deck.\n");
 }
+/* ***** */
 
+
+/* *** player *** */
 const guint32 NPLAYERS =
   2; /* 4 players can play in 2 teams of 2. is this right? */
 struct player
@@ -833,7 +844,10 @@ player_tests()
 
     printf("[+] Finished tests for player.\n");
 }
+/* ***** */
 
+
+/* *** pinochle *** */
 struct pinochle
 {
     GList* players;
@@ -841,12 +855,12 @@ struct pinochle
 };
 
 struct pinochle*
-pinochle_new(guint32 nplayers, guint32 ndecks)
+pinochle_new(guint32 nplayers, guint32 ndecks, const gchar** names)
 {
     struct pinochle* pn = malloc(sizeof(struct pinochle));
     pn->players = NULL;
     for (guint32 i = 0; i < nplayers; i++) {
-        struct player* p = player_new("?", 0);
+        struct player* p = player_new(names[i], 0);
         pn->players = g_list_append(pn->players, p);
     }
     pn->deck = pinochle_deck_new(ndecks);
@@ -870,10 +884,18 @@ pinochle_free(struct pinochle* p)
 void
 pinochle_tests()
 {
-    printf("[+] Running tests for player.\n");
+    printf("[+] Running tests for pinochle.\n");
 
-    printf("[+] Finished tests for player.\n");
+    const gchar* n11[] = {"frank sinatra, jr.", "silvio dante"};
+    struct pinochle* p11 = pinochle_new(2, 2, n11);
+    assert(g_list_length(p11->players) == 2);
+    assert(p11->deck->ndecks == 2);
+    pinochle_free(p11);
+
+    printf("[+] Finished tests for pinochle.\n");
 }
+/* ***** */
+
 
 int
 main(int argc, char** argv)
@@ -888,6 +910,7 @@ main(int argc, char** argv)
     deck_tests();
     pinochle_deck_tests();
     player_tests();
+    pinochle_tests();
 
     printf("Goodbye.\n");
     return 0;
