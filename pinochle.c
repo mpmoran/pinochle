@@ -42,7 +42,8 @@ get_rand_int_range(guint32 begin, guint32 end)
     return num;
 }
 
-gpointer get_rand_list_elem(GList* lst)
+gpointer
+get_rand_list_elem(GList* lst)
 {
     guint32 len = g_list_length(lst);
     guint32 rand_pos = get_rand_int_range(0, len);
@@ -306,7 +307,7 @@ card_tests()
 }
 
 // TODO make this and tests
-struct card_list 
+struct card_list
 {
     GList* cards;
 };
@@ -315,14 +316,73 @@ struct card_list*
 card_list_new()
 {
     struct card_list* cl = malloc(sizeof(struct card_list));
+    cl->cards = NULL;
 
     return cl;
 }
 
 void
-hand_free(struct hand* h)
+card_list_free(struct card_list* cl)
 {
-    free(h);
+    free(cl);
+}
+
+void
+card_list_add(struct card_list* cl, struct card* c)
+{
+    cl->cards = g_list_append(cl->cards, c);
+}
+
+guint32
+card_list_count(struct card_list* cl)
+{
+    return g_list_length(cl->cards);
+}
+
+struct card*
+card_list_remove(struct card_list* cl, guint32 pos)
+{
+    struct card* c = g_list_nth_data(cl->cards, pos);
+    cl->cards = g_list_remove(cl->cards, c);
+
+    return c;
+}
+
+void
+card_list_tests()
+{
+    printf("[+] Running tests for card_list.\n");
+
+    /* test creation */
+    struct card_list* cl11 = card_list_new();
+    assert(cl11->cards == NULL);
+    card_list_free(cl11);
+
+    /* test add() */
+    struct card_list* cl21 = card_list_new();
+    struct card* c21 = card_new(ace, spades);
+    card_list_add(cl21, c21);
+    assert(g_list_length(cl21->cards) == 1);
+    card_list_free(cl21);
+
+    /* test count() */
+    struct card_list* cl31 = card_list_new();
+    assert(card_list_count(cl31) == 0);
+    struct card* c31 = card_new(ace, spades);
+    card_list_add(cl31, c31);
+    assert(card_list_count(cl31) == 1);
+    card_list_free(cl31);
+
+    /* test remove() */
+    struct card_list* cl41 = card_list_new();
+    struct card* c41 = card_new(ace, spades);
+    card_list_add(cl41, c41);
+    struct card* c42 = card_list_remove(cl41, 0);
+    assert(card_list_count(cl41) == 0);
+    assert(card_compare(c41, c42) == 1);
+    card_list_free(cl41);
+
+    printf("[+] Finished tests for card_list.\n");
 }
 
 const guint32 DECK_CARD_COUNT = 24;
@@ -621,7 +681,8 @@ pinochle_deck_draw_rand(struct pinochle_deck* pd)
     return c;
 }
 
-GList* pinochle_deck_draw_rand_n(struct pinochle_deck* pd, guint32 ncards)
+GList*
+pinochle_deck_draw_rand_n(struct pinochle_deck* pd, guint32 ncards)
 {
     GList* cards = NULL;
     for (guint32 i = 0; i < ncards; i++) {
@@ -672,7 +733,7 @@ pinochle_deck_tests()
     GList* cl61 = pinochle_deck_draw_rand_n(pd61, 2);
     assert(g_list_length(cl61) == 2);
     for (guint32 i = 0; i < 2; i++) {
-        struct card *c61 = g_list_nth_data(cl61, i);
+        struct card* c61 = g_list_nth_data(cl61, i);
         assert(card_is_valid(c61));
     }
     pinochle_deck_free(pd61);
@@ -709,7 +770,7 @@ player_new(const gchar* name, guint32 is_dealer)
     p->id = player_get_next_id();
     p->name = g_string_new(name);
     p->is_dealer = is_dealer;
-    p->hand = hand_new();
+    p->hand = card_list_new();
 
     return p;
 }
@@ -718,7 +779,7 @@ void
 player_free(struct player* p)
 {
     g_string_free(p->name, FALSE);
-    hand_free(p->hand);
+    card_list_free(p->hand);
     free(p);
 }
 
@@ -746,12 +807,14 @@ player_tests()
     printf("[+] Finished tests for player.\n");
 }
 
-struct pinochle {
+struct pinochle
+{
     GList* players;
     struct pinochle_deck* deck;
 };
 
-struct pinochle* pinochle_new(guint32 nplayers, guint32 ndecks)
+struct pinochle*
+pinochle_new(guint32 nplayers, guint32 ndecks)
 {
     struct pinochle* pn = malloc(sizeof(struct pinochle));
     pn->players = NULL;
@@ -768,18 +831,19 @@ struct pinochle* pinochle_new(guint32 nplayers, guint32 ndecks)
     return pn;
 }
 
-void pinochle_free(struct pinochle* p)
+void
+pinochle_free(struct pinochle* p)
 {
     // TODO left off here
-    // g_list_foreach(p->players, player_free(struct player *p), gpointer user_data)
+    // g_list_foreach(p->players, player_free(struct player *p), gpointer
+    // user_data)
     free(p);
 }
 
-void pinochle_tests()
+void
+pinochle_tests()
 {
     printf("[+] Running tests for player.\n");
-
-
 
     printf("[+] Finished tests for player.\n");
 }
@@ -793,6 +857,7 @@ main(int argc, char** argv)
     }
 
     card_tests();
+    card_list_tests();
     deck_tests();
     pinochle_deck_tests();
     player_tests();
