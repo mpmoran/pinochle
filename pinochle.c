@@ -883,16 +883,28 @@ pinochle_free(struct pinochle* p)
     free(p);
 }
 
+const guint32 INIT_CARDS_PER_PLAYER = 12;
+void pinochle_deal_init(struct pinochle* p)
+{
+}
+
 void
 pinochle_tests()
 {
     printf("[+] Running tests for pinochle.\n");
 
+    /* test new() */
     const gchar* n11[] = {"frank sinatra, jr.", "silvio dante"};
     struct pinochle* p11 = pinochle_new(2, 2, n11);
     assert(g_list_length(p11->players) == 2);
     assert(p11->deck->ndecks == 2);
     pinochle_free(p11);
+
+    /* test deal_init() */
+    const gchar* n21[] = {"frank sinatra, jr.", "silvio dante"};
+    struct pinochle* p21 = pinochle_new(2, 2, n21);
+    pinochle_free(p21);
+
 
     printf("[+] Finished tests for pinochle.\n");
 }
