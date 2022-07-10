@@ -406,6 +406,14 @@ card_list_tests()
 }
 /* ***** */
 
+
+/* TODO think about the data model and behavior 
+ * we can have players just have a name and player id
+ * we will map player ids to cards lists/hands
+ * make these not have to know about each other.
+ * player should have to know about cards and vice versa
+ * this way i can avoid creating multiple card objects of the same type.
+ */
 /* *** deck *** */
 const guint32 DECK_CARD_COUNT = 24;
 struct deck
@@ -842,6 +850,12 @@ player_tests()
     assert(player_is_dealer(p21) == 1);
     player_free(p21);
 
+    /* test hand_count() */
+    struct player *p31 = player_new("yo-yo mendez", 1);
+    assert(player_is_dealer(p31) == 1);
+    player_free(p31);
+
+
     printf("[+] Finished tests for player.\n");
 }
 /* ***** */
@@ -903,8 +917,13 @@ pinochle_tests()
     /* test deal_init() */
     const gchar* n21[] = {"frank sinatra, jr.", "silvio dante"};
     struct pinochle* p21 = pinochle_new(2, 2, n21);
+    pinochle_deal_init(p21);
+    // player card count should be 12
+    assert(player_hand_count(g_list_nth_data(p21->players, 0)) == 12);
+    assert(player_hand_count(g_list_nth_data(p21->players, 1)) == 12);
+    // deck count should decrease by 24
+    assert(pinochle_deck_count(p21->deck) == 48 - 24);
     pinochle_free(p21);
-
 
     printf("[+] Finished tests for pinochle.\n");
 }
