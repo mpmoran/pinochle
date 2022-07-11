@@ -101,7 +101,6 @@ enum card_state
     in_pile
 };
 
-
 /* *** card *** */
 struct card
 {
@@ -316,7 +315,6 @@ card_tests()
 }
 /* ***** */
 
-
 /* *** card_list *** */
 struct card_list
 {
@@ -404,8 +402,7 @@ card_list_tests()
 }
 /* ***** */
 
-
-/* TODO think about the data model and behavior 
+/* TODO think about the data model and behavior
  * we can have players just have a name and player id
  * we will map player ids to cards lists/hands
  * make these not have to know about each other.
@@ -774,7 +771,6 @@ pinochle_deck_tests()
 }
 /* ***** */
 
-
 /* *** player *** */
 const guint32 NPLAYERS =
   2; /* 4 players can play in 2 teams of 2. is this right? */
@@ -835,7 +831,7 @@ player_tests()
 
     /* test new() */
     GString* n11 = g_string_new("paulie walnuts");
-    struct player *p11 = player_new(n11->str, 0);
+    struct player* p11 = player_new(n11->str, 0);
     assert(p11->id == 2);
     assert(g_string_equal(p11->name, n11) == 1);
     assert(p11->is_dealer == 0);
@@ -844,20 +840,18 @@ player_tests()
     player_free(p11);
 
     /* test is_dealer() */
-    struct player *p21 = player_new("frank sinatra, jr.", 1);
+    struct player* p21 = player_new("frank sinatra, jr.", 1);
     assert(player_is_dealer(p21) == 1);
     player_free(p21);
 
     /* test hand_count() */
-    struct player *p31 = player_new("yo-yo mendez", 1);
+    struct player* p31 = player_new("yo-yo mendez", 1);
     assert(player_is_dealer(p31) == 1);
     player_free(p31);
-
 
     printf("[+] Finished tests for player.\n");
 }
 /* ***** */
-
 
 /* *** pinochle *** */
 struct pinochle
@@ -878,7 +872,7 @@ pinochle_new(guint32 nplayers, guint32 ndecks, const gchar** names)
     pn->deck = pinochle_deck_new(ndecks);
 
     /* pick dealer */
-    struct player* dealer = (struct player *)get_rand_list_elem(pn->players);
+    struct player* dealer = (struct player*)get_rand_list_elem(pn->players);
     dealer->is_dealer = 1;
 
     return pn;
@@ -896,7 +890,8 @@ pinochle_free(struct pinochle* p)
 }
 
 const guint32 INIT_CARDS_PER_PLAYER = 12;
-void pinochle_deal_init(struct pinochle* p)
+void
+pinochle_deal_init(struct pinochle* p)
 {
 }
 
@@ -906,14 +901,14 @@ pinochle_tests()
     printf("[+] Running tests for pinochle.\n");
 
     /* test new() */
-    const gchar* n11[] = {"frank sinatra, jr.", "silvio dante"};
+    const gchar* n11[] = { "frank sinatra, jr.", "silvio dante" };
     struct pinochle* p11 = pinochle_new(2, 2, n11);
     assert(g_list_length(p11->players) == 2);
     assert(p11->deck->ndecks == 2);
     pinochle_free(p11);
 
     /* test deal_init() */
-    const gchar* n21[] = {"frank sinatra, jr.", "silvio dante"};
+    const gchar* n21[] = { "frank sinatra, jr.", "silvio dante" };
     struct pinochle* p21 = pinochle_new(2, 2, n21);
     pinochle_deal_init(p21);
     // player card count should be 12
@@ -926,7 +921,6 @@ pinochle_tests()
     printf("[+] Finished tests for pinochle.\n");
 }
 /* ***** */
-
 
 int
 main(int argc, char** argv)
