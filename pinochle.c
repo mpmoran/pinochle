@@ -406,7 +406,7 @@ card_list_tests()
  * we can have players just have a name and player id
  * we will map player ids to cards lists/hands
  * make these not have to know about each other.
- * player should have to know about cards and vice versa
+ * player should not have to know about cards and vice versa
  * this way i can avoid creating multiple card objects of the same type.
  */
 /* *** deck *** */
