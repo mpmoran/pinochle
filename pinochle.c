@@ -17,27 +17,27 @@
 
 /* helpers */
 GRand* grand = NULL;
-guint32
+unsigned int
 get_rand_int()
 {
     if (grand == NULL) {
         grand = g_rand_new_with_seed(1);
     }
 
-    guint32 num = g_rand_int(grand);
+    unsigned int num = g_rand_int(grand);
 
     return num;
 }
 
 GRand* grand_range = NULL;
-guint32
-get_rand_int_range(guint32 begin, guint32 end)
+unsigned int
+get_rand_int_range(unsigned int begin, unsigned int end)
 {
     if (grand_range == NULL) {
         grand_range = g_rand_new_with_seed(1);
     }
 
-    guint32 num = g_rand_int_range(grand_range, begin, end);
+    unsigned int num = g_rand_int_range(grand_range, begin, end);
 
     return num;
 }
@@ -53,16 +53,16 @@ get_rand_list_elem(GList* lst)
 }
 /* *** */
 
-const guint32 NUM_CARDS_PER_PLAYER = 12;
-const guint32 NUM_CARDS_DEALT_AT_ONCE = 3;
+const unsigned int NUM_CARDS_PER_PLAYER = 12;
+const unsigned int NUM_CARDS_DEALT_AT_ONCE = 3;
 /* sometimes it's 4. */
-// const guint32 NUM_CARDS_DEALT_AT_ONCE = 4;
+// const unsigned int NUM_CARDS_DEALT_AT_ONCE = 4;
 
 /* disable bidding; TODO implement bidding system */
-const guint32 WITH_BIDS = 0;
+const unsigned int WITH_BIDS = 0;
 
 /* TODO think about this -> should i use enums for ranks and suits? */
-const guint32 NRANK = 6;
+const unsigned int NRANK = 6;
 enum rank
 {
     ace,
@@ -74,17 +74,17 @@ enum rank
 };
 const enum rank RANKS[] = { ace, ten, king, queen, jack, nine };
 /* "counter" cards are ALWAYS worth points. */
-const guint32 NCOUNTERS = 3;
+const unsigned int NCOUNTERS = 3;
 const enum rank COUNTERS[] = { ace, ten, king };
 /* sometimes there's such a thing as "noncounter" cards.
  * these are worthless (i.e., no points). the scoring system
  * should be agreed on before play begins (i.e., the first
  * card is dealt).
  */
-const guint32 NNONCOUNTERS = 3;
+const unsigned int NNONCOUNTERS = 3;
 const enum rank NONCOUNTERS[] = { queen, jack, nine };
 
-const guint32 NSUIT = 4;
+const unsigned int NSUIT = 4;
 enum suit
 {
     clubs,
@@ -112,7 +112,6 @@ struct card*
 card_new(enum rank rank, enum suit suit)
 {
     struct card* c = malloc(sizeof(struct card));
-    // struct card* c = malloc(sizeof(struct card));
     c->suit = suit;
     c->rank = rank;
     c->state = in_deck;
@@ -124,10 +123,9 @@ void
 card_free(struct card* c)
 {
     free(c);
-    // free(c);
 }
 
-guint32
+unsigned int
 card_is_valid(struct card* c)
 {
     enum rank rank = c->rank;
@@ -146,7 +144,7 @@ card_is_valid(struct card* c)
     }
 }
 
-gint32
+int
 card_compare(struct card* c1, struct card* c2)
 {
     if (c1->rank == c2->rank && c1->suit == c2->suit) {
@@ -156,7 +154,7 @@ card_compare(struct card* c1, struct card* c2)
     }
 }
 
-int
+unsigned int
 card_is_counter(struct card* card)
 {
     enum rank rank = card->rank;
@@ -168,7 +166,7 @@ card_is_counter(struct card* card)
     return 0;
 }
 
-int
+unsigned int
 card_is_noncounter(struct card* card)
 {
     enum rank rank = card->rank;
@@ -226,7 +224,7 @@ card_str_free(void* str)
 }
 
 void
-card_show(struct card* card, const gchar* fmtstr)
+card_show(struct card* card, const char* fmtstr)
 {
     GString* buf = card_str(card);
     printf(fmtstr, buf->str);
@@ -236,7 +234,7 @@ card_show(struct card* card, const gchar* fmtstr)
 void
 card_show_gfunc(gpointer card, gpointer fmtstr)
 {
-    card_show((struct card*)card, (const gchar*)fmtstr);
+    card_show((struct card*)card, (const char*)fmtstr);
 }
 
 void
@@ -342,7 +340,7 @@ card_list_add(struct card_list* cl, struct card* c)
     cl->cards = g_list_append(cl->cards, c);
 }
 
-guint32
+unsigned int
 card_list_count(struct card_list* cl)
 {
     return g_list_length(cl->cards);
@@ -401,7 +399,7 @@ card_list_tests()
     printf("[+] Finished tests for card_list.\n");
 }
 
-const guint32 DECK_CARD_COUNT = 24;
+const unsigned int DECK_CARD_COUNT = 24;
 struct deck
 {
     GList* cards;
